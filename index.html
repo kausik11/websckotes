@@ -21,6 +21,7 @@
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
     </form>
+    <button id="connection">Connect</button>
     <button id="disconnect">Disconnect</button>
   </body>
 
@@ -32,6 +33,7 @@
   const input = document.getElementById('input');
   const messages = document.getElementById('messages');
 const disconnectbtn = document.getElementById("disconnect");
+const connectionbtn = document.getElementById("connection");
 
 // error document.readyState is NOT guaranteed to be "complete" at the moment this script runs
 // document.readyState === "complete" &&  socket.emit('hello', 1, '2', { 3: '4', 5: Uint8Array.from([6]) });
@@ -45,14 +47,33 @@ const disconnectbtn = document.getElementById("disconnect");
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     if (input.value) {
-      socket.emit('chat message', input.value);
+      socket.emit('chat message', input.value, (ack) => {
+      if (ack?.status === "ok") {
+        console.log("ACK:", ack.message);
+      }
+    }
+  );
       input.value = '';
     }
   });
 
   disconnectbtn.addEventListener('click', function(e) {
-    socket.emit('disconnected');
+    socket.emit('disconnected',"user disconnected");
    
+  });
+
+  connectionbtn.addEventListener('click', function(e) {
+    // socket.emit('connected',"user connected");
+    // socket.emit('hello connect again', 1, '2', { 3: '4', 5: Uint8Array.from([6]) });
+
+  //    socket.emit("chat message", msg, (ack) => {
+  //   if (ack.status === "ok") {
+  //     console.log("✅ ACK:", ack.message);
+  //   } else {
+  //     console.error("❌ Failed:", ack);
+  //   }
+  // }
+
   });
 
      
@@ -65,18 +86,35 @@ const disconnectbtn = document.getElementById("disconnect");
     window.scrollTo(0, document.body.scrollHeight);
   })
 
+  socket.on('disconnected', function(msg){
+    // console.log("msg", msg)
+    // const item = document.createElement('li');
+    // item.textContent = msg;
+    // messages.appendChild(item);
+    // window.scrollTo(0, document.body.scrollHeight);
+    const item = document.createElement("h1");
+    item.textContent = msg;
+    messages.appendChild(item);
+    window.scrollTo(0, document.body.scrollHeight);
+  
+
+    // connect once again
+    socket.on('connected',(msg)=>{
+      const item = document.createElement("h1");
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    })
+
+    socket.on('hello', (msg)=>{
+      const item = document.createElement("h1");
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    })
+  })
 
 
-//   const connectwbs = () => {
-//     return io('http://localhost:3000/');
-//   }
 
-//   connectwbs().on('connect', () => {
-//     console.log("connected");
-//   });
-
-//   connectwbs().on('message', () => {
-//     console.log("disconnected");
-//   });
 </script>
 </html>
